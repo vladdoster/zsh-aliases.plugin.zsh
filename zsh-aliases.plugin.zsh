@@ -12,6 +12,7 @@ alias -- '....'='builtin cd ../../../ && l'
 alias -- '.....'='builtin cd ../../../../ && l'
 alias -- '?'='which'
 alias b='cd -'
+alias rmr='rm -r --'
 
 alias get-path='print -l $path[@]'
 alias get-sys='print -l "OSTYPE=${OSTYPE}" "VENDOR=$VENDOR" "MACHTYPE=${MACHTYPE}" "CPUTYPE=${CPUTYPE}" "hardware=$(uname -m)" "processor=$(uname -p)"'
