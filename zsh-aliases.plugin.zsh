@@ -11,6 +11,21 @@ alias -- '...'='builtin cd ../../ && l'
 alias -- '....'='builtin cd ../../../ && l'
 alias -- '.....'='builtin cd ../../../../ && l'
 alias -- '?'='which'
+alias b='cd -'
+
+alias get-path='print -l $path[@]'
+alias get-sys='print -l "OSTYPE=${OSTYPE}" "VENDOR=$VENDOR" "MACHTYPE=${MACHTYPE}" "CPUTYPE=${CPUTYPE}" "hardware=$(uname -m)" "processor=$(uname -p)"'
+alias get-user='print -P "%F{blue}$(whoami)%f @ %F{cyan}$(uname -a)%f"'
+
+alias mk='make'
+alias mkcd='{ local DIR_NAME="$(cat -)"; command mkdir -p -- "$DIR_NAME" && builtin cd -P -- $DIR_NAME }<<<'
+
+alias scratchpad='${EDITOR:-vim} $(mktemp -t scratch.XXX.md)'
+alias rsync='rsync -azP'
+
+alias -g C='cat'
+alias -g G='grep -R '
+alias -g L='less'
 
 alias -g g='command -p git'
 alias ga='g add'
@@ -27,6 +42,7 @@ alias gr='g reset'
 alias grs='gr --staged'
 alias grv='g remote --verbose'
 alias gs='g status'
+alias git-repo-website='open $(g remote get-url origin)'
 
 alias -g l='command -p ls --color'
 alias la='l -a'
@@ -34,3 +50,4 @@ alias ll='l -l'
 
 alias cfg='builtin cd ${XDG_CONFIG_DIR:-$HOME/.config/} && l'
 alias zdd='builtin cd ${ZDOTDIR:-$HOME/.config/zsh} && l'
+alias zrld='builtin exec zsh -i'
