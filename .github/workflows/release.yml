@@ -12,4 +12,4 @@ jobs:
     needs: [commit,lint]
     uses: vladdoster/.github/.github/workflows/release.yml@master
     secrets:
-       github-token: ${{ secrets.GITHUB_TOKEN }}
+       github-token: ${{ secrets.GH_ACTIONS_TOKEN }}
