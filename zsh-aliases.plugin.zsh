@@ -5,6 +5,8 @@
 0="${ZERO:-${${0:#$ZSH_ARGZERO}:-${(%):-%N}}}"
 0="${${(M)0:#/*}:-$PWD/$0}"
 
+emulate -L zsh
+
 alias -- '+x'='chmod +x'
 alias -- '..'='builtin cd ../ && l'
 alias -- '...'='builtin cd ../../ && l'
@@ -13,6 +15,13 @@ alias -- '.....'='builtin cd ../../../../ && l'
 alias -- '?'='which'
 alias b='cd -'
 alias rmr='rm -rf'
+
+alias -g B='brew'
+alias -g C='cat'
+alias -g D='docker'
+alias -g G='grep -R'
+alias -g L='less'
+alias -g P='builtin print'
 
 alias get-path='print -l $path[@]'
 alias get-sys='print -l "OSTYPE=${OSTYPE}" "VENDOR=$VENDOR" "MACHTYPE=${MACHTYPE}" "CPUTYPE=${CPUTYPE}" "hardware=$(uname -m)" "processor=$(uname -p)"'
@@ -24,11 +33,7 @@ alias mkcd='{ local DIR_NAME="$(cat -)"; command mkdir -p -- "$DIR_NAME" && buil
 alias scratchpad='${EDITOR:-vim} $(mktemp -t scratch.XXX.md)'
 alias rsync='rsync -azP'
 
-alias -g C='cat'
-alias -g G='grep -R '
-alias -g L='less'
-
-alias -g g='command -p git'
+alias -g g='\git'
 alias ga='g add'
 alias gau='ga --update'
 alias gc='g commit --signoff'
