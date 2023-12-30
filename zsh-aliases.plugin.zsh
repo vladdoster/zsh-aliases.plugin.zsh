@@ -55,5 +55,6 @@ alias la='l -a'
 alias ll='l -l'
 
 alias cfg='builtin cd ${XDG_CONFIG_DIR:-$HOME/.config/} && l'
+alias ezc='${EDITOR:-vim} ${ZDOTDIR:-$HOME}/.zshrc'
 alias zdd='builtin cd ${ZDOTDIR:-$HOME/.config/zsh} && l'
 alias zrld='builtin exec zsh -i'
