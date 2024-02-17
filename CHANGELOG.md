@@ -1,3 +1,10 @@
+# [1.2.0](https://github.com/vladdoster/zsh-aliases.plugin.zsh/compare/v1.1.0...v1.2.0) (2024-02-17)
+
+
+### Features
+
+* F alias functions -x4 ([0748caa](https://github.com/vladdoster/zsh-aliases.plugin.zsh/commit/0748caacaef1fba324ad86a5e3ebc40937abb288))
+
 # [1.1.0](https://github.com/vladdoster/zsh-aliases.plugin.zsh/compare/v1.0.0...v1.1.0) (2023-12-30)
 
 
