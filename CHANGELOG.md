@@ -1,3 +1,10 @@
+## [1.2.1](https://github.com/vladdoster/zsh-aliases.plugin.zsh/compare/v1.2.0...v1.2.1) (2024-03-15)
+
+
+### Bug Fixes
+
+* **zrld:** remove -i flag ([67dcb68](https://github.com/vladdoster/zsh-aliases.plugin.zsh/commit/67dcb68bd37c59990a4f73bfc4d904b7007cad99))
+
 # [1.2.0](https://github.com/vladdoster/zsh-aliases.plugin.zsh/compare/v1.1.0...v1.2.0) (2024-02-17)
 
 
