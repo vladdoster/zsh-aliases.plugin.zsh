@@ -17,9 +17,6 @@ alias b='cd -'
 alias rmr='rm -rf'
 
 alias -g B='brew'
-alias -g F='functions -x4'
-# Needed because passing options breaks function completion
-compdef '_functions' F
 alias -g C='cat'
 alias -g D='docker'
 alias -g G='grep -R'
