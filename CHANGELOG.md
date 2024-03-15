@@ -1,3 +1,10 @@
+## [1.2.2](https://github.com/vladdoster/zsh-aliases.plugin.zsh/compare/v1.2.1...v1.2.2) (2024-03-15)
+
+
+### Bug Fixes
+
+* remove F alias and completion ([196c84c](https://github.com/vladdoster/zsh-aliases.plugin.zsh/commit/196c84caafb581748c1933254fdcbd8ec189dd04))
+
 ## [1.2.1](https://github.com/vladdoster/zsh-aliases.plugin.zsh/compare/v1.2.0...v1.2.1) (2024-03-15)
 
 
