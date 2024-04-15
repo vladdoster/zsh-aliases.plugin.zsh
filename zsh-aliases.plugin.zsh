@@ -7,9 +7,6 @@
 0=${ZERO:-${${0:#$ZSH_ARGZERO}:-${(%):-%N}}}
 0=${${(M)0:#/*}:-$PWD/$0}
 
-alias clist='mdfind -onlyin . -interpret .cpp & mdfind -onlyin . -interpret .cc'
-alias cjump='nvim $(mdfind -onlyin . -name main | grep -A 1 /Users)'
-
 emulate -LR zsh
 setopt no_aliases
 
@@ -45,7 +42,7 @@ alias -- ll='builtin ls -l'
 alias -- cfg='builtin cd ${XDG_CONFIG_DIR:-$HOME/.config/} && l'
 alias -- ezc='${EDITOR:-vim} ${ZDOTDIR:-$HOME}/.zshrc'
 alias -- zdd='builtin cd ${ZDOTDIR:-$HOME/.config/zsh} && l'
-alias -- zrld='builtin exec zsh -l'
+alias -- zrld='builtin exec ${SHELL:-zsh} -l'
 
 alias -- get-path='print -l -- ${path[@]}'
 alias -- get-sys='print -l -- OSTYPE=${(qq)OSTYPE} VENDOR=${(qq)VENDOR} MACHTYPE=${(qq)MACHTYPE} CPUTYPE=${(qq)CPUTYPE} hardware=${(qq)$(uname -m)} processor=${(qq)$(uname -p)}'
