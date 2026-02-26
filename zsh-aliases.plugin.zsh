@@ -7,7 +7,7 @@
 0=${ZERO:-${${0:#$ZSH_ARGZERO}:-${(%):-%N}}}
 0=${${(M)0:#/*}:-$PWD/$0}
 
-emulate -LR zsh
+emulate -L zsh
 setopt no_aliases
 
 alias -- '+x'='command chmod +x'
@@ -35,9 +35,10 @@ alias rsync='rsync -azP'
 
 alias -- git-repo-website='open $(git remote get-url origin)'
 
-alias -- l='builtin ls --color'
-alias -- la='builtin ls -a'
-alias -- ll='builtin ls -l'
+alias -- l='${commands[eza]:-ls} --color'
+alias -- la='${commands[eza]:-ls} -a'
+alias -- ll='${commands[eza]:-ls} -l'
+alias -- lr='${commands[eza]:-ls} -lR'
 
 alias -- cfg='builtin cd ${XDG_CONFIG_DIR:-$HOME/.config/} && l'
 alias -- ezc='${EDITOR:-vim} ${ZDOTDIR:-$HOME}/.zshrc'
