@@ -1,3 +1,10 @@
+## [1.2.4](https://github.com/vladdoster/zsh-aliases.plugin.zsh/compare/v1.2.3...v1.2.4) (2026-02-26)
+
+
+### Bug Fixes
+
+* use `eza` with `ls` as fallback ([c255084](https://github.com/vladdoster/zsh-aliases.plugin.zsh/commit/c255084db3680417cb95b7ada8991eb8354352e8))
+
 ## [1.2.3](https://github.com/vladdoster/zsh-aliases.plugin.zsh/compare/v1.2.2...v1.2.3) (2024-04-15)
 
 
