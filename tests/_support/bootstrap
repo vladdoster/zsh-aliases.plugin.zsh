@@ -41,3 +41,12 @@ function stub_bin() {
     command printf '#!/bin/sh\necho "%s $*"\n' $name > $dir/$name
     command chmod +x $dir/$name
 }
+
+# Create a stub executable that prints one argument per line, so tests can tell
+# `--a --b` (two arguments) from `'--a --b'` (one unsplit argument).
+function stub_argv_bin() {
+    local dir=$1 name=$2
+    command mkdir -p -- $dir
+    command printf '#!/bin/sh\nprintf "%%s\\n" "$@"\n' > $dir/$name
+    command chmod +x $dir/$name
+}
