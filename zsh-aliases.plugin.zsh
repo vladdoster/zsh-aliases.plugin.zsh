@@ -7,44 +7,58 @@
 0=${ZERO:-${${0:#$ZSH_ARGZERO}:-${(%):-%N}}}
 0=${${(M)0:#/*}:-$PWD/$0}
 
-emulate -L zsh
-setopt no_aliases
+# Wrapped in an anonymous function so `emulate -L` / `setopt no_aliases` are
+# restored on return. At the top level of a sourced file they would leak into
+# the interactive shell and disable alias expansion everywhere.
+() {
+    emulate -L zsh
+    setopt no_aliases
 
-alias -- '+x'='command chmod +x'
-alias -- '..'='builtin cd -- ../ && l'
-alias -- '...'='builtin cd -- ../../ && l'
-alias -- '....'='builtin cd -- ../../../ && l'
-alias -- '.....'='builtin cd -- ../../../../ && l'
-alias -- '?'='command which'
-alias b='builtin cd -'
-alias rmr='command rm -rf --'
+    # ${commands} lives in zsh/parameter; without it every ${commands[x]} lookup is
+    # empty and the eza/ls probing below silently picks the fallback forever.
+    zmodload -F zsh/parameter p:commands
 
-alias -g -- B='command brew'
-alias -g -- C='command cat'
-alias -g -- D='command docker'
-alias -g -- G='command grep -R'
-alias -g -- L='command less'
-alias -g -- P='builtin print -P'
-alias -g -- g='command git'
+    alias -- '+x'='command chmod +x'
+    alias -- '..'='builtin cd -- ../ && l'
+    alias -- '...'='builtin cd -- ../../ && l'
+    alias -- '....'='builtin cd -- ../../../ && l'
+    alias -- '.....'='builtin cd -- ../../../../ && l'
+    alias -- '?'='command which'
+    alias b='builtin cd -'
+    alias rmr='command rm -rf --'
 
-alias mk='command make'
-alias mkcd='{ local DIR_NAME=$(cat -) && command mkdir -p -- $DIR_NAME && builtin cd -P -- $DIR_NAME }<<<'
+    alias -g -- B='command brew'
+    alias -g -- C='command cat'
+    alias -g -- D='command docker'
+    alias -g -- G='command grep -R'
+    alias -g -- L='command less'
+    alias -g -- P='builtin print -P'
+    alias -g -- g='command git'
 
-alias scratchpad='${EDITOR:-vim} $(mktemp -t scratch.XXX.md)'
-alias rsync='rsync -azP'
+    alias mk='command make'
+    alias mkcd='() { command mkdir -p -- "$1" && builtin cd -P -- "$1" }'
 
-alias -- git-repo-website='open $(git remote get-url origin)'
+    # `mktemp -t` means different things on BSD and GNU, and neither accepts a
+    # `.md` suffix reliably; ${(%):-%D} is prompt expansion, so no subprocess.
+    alias scratchpad='${EDITOR:-vim} ${TMPDIR:-/tmp}/scratch-${(%):-%D}-$RANDOM.md'
+    alias rsync='command rsync -azP'
 
-alias -- l='${commands[eza]:-ls} --color'
-alias -- la='${commands[eza]:-ls} -a'
-alias -- ll='${commands[eza]:-ls} -l'
-alias -- lr='${commands[eza]:-ls} -lR'
+    alias -- git-repo-website='() { local u=${$(command git remote get-url origin)%.git}; [[ $u == git@* ]] && u=https://${${u#git@}/://}; ${commands[open]:-xdg-open} $u }'
 
-alias -- cfg='builtin cd ${XDG_CONFIG_DIR:-$HOME/.config/} && l'
-alias -- ezc='${EDITOR:-vim} ${ZDOTDIR:-$HOME}/.zshrc'
-alias -- zdd='builtin cd ${ZDOTDIR:-$HOME/.config/zsh} && l'
-alias -- zrld='builtin exec ${SHELL:-zsh} -l'
+    # ${commands[eza]} is the absolute path to eza, or empty when it is not on
+    # $PATH, so `:-ls` falls back at run time. `--color=auto` is the only spelling
+    # both eza and ls accept, and it keeps escape codes out of pipes.
+    alias -- l='${commands[eza]:-ls} --color=auto'
+    alias -- la='${commands[eza]:-ls} --color=auto -a'
+    alias -- ll='${commands[eza]:-ls} --color=auto -l'
+    alias -- lr='${commands[eza]:-ls} --color=auto -lR'
 
-alias -- get-path='print -l -- ${path[@]}'
-alias -- get-sys='print -l -- OSTYPE=${(qq)OSTYPE} VENDOR=${(qq)VENDOR} MACHTYPE=${(qq)MACHTYPE} CPUTYPE=${(qq)CPUTYPE} hardware=${(qq)$(uname -m)} processor=${(qq)$(uname -p)}'
-alias -- get-user='print -P -- %F{blue}$(whoami)%f @ %F{cyan}$(uname -a)%f'
+    alias -- cfg='builtin cd ${XDG_CONFIG_HOME:-$HOME/.config} && l'
+    alias -- ezc='${EDITOR:-vim} ${ZDOTDIR:-$HOME}/.zshrc'
+    alias -- zdd='builtin cd ${ZDOTDIR:-$HOME/.config/zsh} && l'
+    alias -- zrld='builtin exec ${SHELL:-zsh} -l'
+
+    alias -- get-path='print -l -- $path'
+    alias -- get-sys='print -l -- OSTYPE=${(qq)OSTYPE} VENDOR=${(qq)VENDOR} MACHTYPE=${(qq)MACHTYPE} CPUTYPE=${(qq)CPUTYPE} hardware=${(qq)$(uname -m)} processor=${(qq)$(uname -p)}'
+    alias -- get-user='print -P -- %F{blue}$(whoami)%f @ %F{cyan}$(uname -a)%f'
+}
