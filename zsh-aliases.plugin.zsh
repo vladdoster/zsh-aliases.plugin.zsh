@@ -48,15 +48,19 @@
     # ${commands[eza]} is the absolute path to eza, or empty when it is not on
     # $PATH, so `:-ls` falls back at run time. `--color=auto` is the only spelling
     # both eza and ls accept, and it keeps escape codes out of pipes.
-    alias -- l='${commands[eza]:-ls} --color=auto'
-    alias -- la='${commands[eza]:-ls} --color=auto -a'
-    alias -- ll='${commands[eza]:-ls} --color=auto -l'
-    alias -- lr='${commands[eza]:-ls} --color=auto -lR'
+    #
+    # ${=...:+...} carries the eza-only flags, which ls would reject. The `=` is
+    # load-bearing: zsh does not word-split the result of a parameter expansion,
+    # so without it the flags would reach eza as one argument.
+    alias -- l='${commands[eza]:-ls} --color=auto ${=commands[eza]:+--group-directories-first}'
+    alias -- la='${commands[eza]:-ls} --color=auto ${=commands[eza]:+--group-directories-first} -a'
+    alias -- ll='${commands[eza]:-ls} --color=auto ${=commands[eza]:+--group-directories-first --git} -l'
+    alias -- lr='${commands[eza]:-ls} --color=auto ${=commands[eza]:+--group-directories-first --git} -lR'
 
     alias -- cfg='builtin cd ${XDG_CONFIG_HOME:-$HOME/.config} && l'
     alias -- ezc='${EDITOR:-vim} ${ZDOTDIR:-$HOME}/.zshrc'
     alias -- zdd='builtin cd ${ZDOTDIR:-$HOME/.config/zsh} && l'
-    alias -- zrld='builtin exec ${SHELL:-zsh} -l'
+    alias -- zrld='builtin exec ${SHELL:-zsh} -li'
 
     alias -- get-path='print -l -- $path'
     alias -- get-sys='print -l -- OSTYPE=${(qq)OSTYPE} VENDOR=${(qq)VENDOR} MACHTYPE=${(qq)MACHTYPE} CPUTYPE=${(qq)CPUTYPE} hardware=${(qq)$(uname -m)} processor=${(qq)$(uname -p)}'

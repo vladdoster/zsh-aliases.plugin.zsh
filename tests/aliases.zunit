@@ -15,6 +15,10 @@
     stub_bin $NO_EZA_DIR ls
     stub_bin $WITH_EZA_DIR ls
     stub_bin $WITH_EZA_DIR eza
+
+    # Same as WITH_EZA_DIR, but the eza stub prints one argument per line.
+    ARGV_DIR=$STUB_DIR/argv
+    stub_argv_bin $ARGV_DIR eza
 }
 
 @teardown {
@@ -44,14 +48,14 @@
 
 @test 'l prefers eza when it is installed' {
     run plugin_run $WITH_EZA_DIR 'l'
-    assert $output same_as 'eza --color=auto'
+    assert $output same_as 'eza --color=auto --group-directories-first'
 }
 
 @test 'la ll lr prefer eza when it is installed' {
     run plugin_run $WITH_EZA_DIR 'la; ll; lr'
-    assert "${lines[1]}" same_as 'eza --color=auto -a'
-    assert "${lines[2]}" same_as 'eza --color=auto -l'
-    assert "${lines[3]}" same_as 'eza --color=auto -lR'
+    assert "${lines[1]}" same_as 'eza --color=auto --group-directories-first -a'
+    assert "${lines[2]}" same_as 'eza --color=auto --group-directories-first --git -l'
+    assert "${lines[3]}" same_as 'eza --color=auto --group-directories-first --git -lR'
 }
 
 @test 'commands[eza] resolves to an absolute path' {
@@ -68,7 +72,24 @@
 @test 'listing aliases resolve eza at run time, not at load time' {
     # eza only appears on $PATH after the plugin has already been sourced.
     local out=$(plugin_run $NO_EZA_DIR "PATH=$WITH_EZA_DIR:/usr/bin:/bin; l")
-    assert "$out" same_as 'eza --color=auto'
+    assert "$out" same_as 'eza --color=auto --group-directories-first'
+}
+
+@test 'eza-only flags never reach the ls fallback' {
+    run plugin_run $NO_EZA_DIR 'l; la; ll; lr'
+    assert $output does_not_contain '--group-directories-first'
+    assert $output does_not_contain '--git'
+}
+
+@test 'eza-only flags are passed as separate arguments' {
+    # The `=` in ${=commands[eza]:+...} is what splits them; without it eza
+    # would receive one argument containing spaces.
+    run plugin_run $ARGV_DIR 'll'
+    assert "${#lines}" equals 4
+    assert "${lines[1]}" same_as '--color=auto'
+    assert "${lines[2]}" same_as '--group-directories-first'
+    assert "${lines[3]}" same_as '--git'
+    assert "${lines[4]}" same_as '-l'
 }
 
 @test 'listing aliases use --color=auto so pipes stay clean' {
