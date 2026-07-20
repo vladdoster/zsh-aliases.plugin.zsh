@@ -1,0 +1,43 @@
+#!/usr/bin/env zsh
+# vim: set expandtab filetype=zsh shiftwidth=4 softtabstop=4 tabstop=4:
+#
+# Loaded by ZUnit before every test file.
+
+PLUGIN_DIR=${${0:A:h}:h:h}
+PLUGIN=$PLUGIN_DIR/zsh-aliases.plugin.zsh
+
+# Resolved here because the sandboxed $PATH below must not decide which zsh
+# runs the fixtures.
+ZSH_BIN=${commands[zsh]:-/bin/zsh}
+
+# Run a command in a pristine zsh that has sourced the plugin.
+#
+#   plugin_run <bin-dir> <command...>
+#
+# <bin-dir> is prepended to a minimal $PATH so tests can stub out eza/ls.
+#
+# The command is written to a script rather than passed to `zsh -c`, because
+# `zsh -c` parses the whole string up front, before `setopt aliases` has run,
+# and would therefore never expand the aliases under test.
+function plugin_run() {
+    local bindir=$1; shift
+    local script=$bindir/.plugin_run.zsh
+
+    print -lr -- "source ${(q)PLUGIN}" 'setopt aliases' "$*" > $script
+
+    command env -i \
+        HOME=$HOME \
+        TERM=${TERM:-dumb} \
+        GIT_CONFIG_GLOBAL=/dev/null \
+        GIT_CONFIG_SYSTEM=/dev/null \
+        PATH="$bindir:/usr/bin:/bin:/usr/sbin:/sbin" \
+        $ZSH_BIN -f $script
+}
+
+# Create a stub executable that echoes its own name plus its arguments.
+function stub_bin() {
+    local dir=$1 name=$2
+    command mkdir -p -- $dir
+    command printf '#!/bin/sh\necho "%s $*"\n' $name > $dir/$name
+    command chmod +x $dir/$name
+}

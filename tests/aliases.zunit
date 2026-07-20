@@ -1,0 +1,161 @@
+#!/usr/bin/env zunit
+# vim: set expandtab filetype=zsh shiftwidth=4 softtabstop=4 tabstop=4:
+#
+# @setup builds two throwaway $PATH entries holding stub `eza`/`ls` binaries,
+# so each test can control which of the two is discoverable.
+#
+# NOTE: ZUnit's `run` re-quotes and evals its arguments, so a `$` that must
+# survive into the inner shell is written as `\$`.
+
+@setup {
+    STUB_DIR=$(command mktemp -d)
+    NO_EZA_DIR=$STUB_DIR/no-eza
+    WITH_EZA_DIR=$STUB_DIR/with-eza
+
+    stub_bin $NO_EZA_DIR ls
+    stub_bin $WITH_EZA_DIR ls
+    stub_bin $WITH_EZA_DIR eza
+}
+
+@teardown {
+    command rm -rf -- $STUB_DIR
+}
+
+@test 'l falls back to ls when eza is absent' {
+    run plugin_run $NO_EZA_DIR 'l'
+    assert $state equals 0
+    assert $output same_as 'ls --color=auto'
+}
+
+@test 'la falls back to ls when eza is absent' {
+    run plugin_run $NO_EZA_DIR 'la'
+    assert $output same_as 'ls --color=auto -a'
+}
+
+@test 'll falls back to ls when eza is absent' {
+    run plugin_run $NO_EZA_DIR 'll'
+    assert $output same_as 'ls --color=auto -l'
+}
+
+@test 'lr falls back to ls when eza is absent' {
+    run plugin_run $NO_EZA_DIR 'lr'
+    assert $output same_as 'ls --color=auto -lR'
+}
+
+@test 'l prefers eza when it is installed' {
+    run plugin_run $WITH_EZA_DIR 'l'
+    assert $output same_as 'eza --color=auto'
+}
+
+@test 'la ll lr prefer eza when it is installed' {
+    run plugin_run $WITH_EZA_DIR 'la; ll; lr'
+    assert "${lines[1]}" same_as 'eza --color=auto -a'
+    assert "${lines[2]}" same_as 'eza --color=auto -l'
+    assert "${lines[3]}" same_as 'eza --color=auto -lR'
+}
+
+@test 'commands[eza] resolves to an absolute path' {
+    # Called directly rather than through `run`, which would expand the `$`.
+    local out=$(plugin_run $WITH_EZA_DIR 'print -r -- ${commands[eza]}')
+    assert "$out" same_as "$WITH_EZA_DIR/eza"
+}
+
+@test 'commands[eza] is empty when eza is not on PATH' {
+    local out=$(plugin_run $NO_EZA_DIR 'print -r -- "[${commands[eza]}]"')
+    assert "$out" same_as '[]'
+}
+
+@test 'listing aliases resolve eza at run time, not at load time' {
+    # eza only appears on $PATH after the plugin has already been sourced.
+    local out=$(plugin_run $NO_EZA_DIR "PATH=$WITH_EZA_DIR:/usr/bin:/bin; l")
+    assert "$out" same_as 'eza --color=auto'
+}
+
+@test 'listing aliases use --color=auto so pipes stay clean' {
+    run plugin_run $NO_EZA_DIR 'alias l la ll lr'
+    assert $output contains '--color=auto'
+    assert $output does_not_contain '--color '
+}
+
+@test 'cfg honours XDG_CONFIG_HOME' {
+    run plugin_run $NO_EZA_DIR 'alias cfg'
+    assert $output contains 'XDG_CONFIG_HOME'
+    assert $output does_not_contain 'XDG_CONFIG_DIR'
+}
+
+@test 'mkcd creates a nested directory and changes into it' {
+    local target=$STUB_DIR/a/b/c
+    local out=$(plugin_run $NO_EZA_DIR "mkcd ${(q)target}; builtin print -r -- \$PWD")
+    assert $? equals 0
+    assert "$out" same_as "${target:A}"
+}
+
+@test 'mkcd handles paths containing spaces' {
+    local target="$STUB_DIR/two words"
+    local out=$(plugin_run $NO_EZA_DIR "mkcd ${(q)target}; builtin print -r -- \$PWD")
+    assert "$out" same_as "${target:A}"
+}
+
+@test 'get-path prints one $path entry per line' {
+    run plugin_run $NO_EZA_DIR 'get-path'
+    assert "${lines[1]}" same_as "$NO_EZA_DIR"
+    assert "${#lines}" equals 5
+}
+
+@test 'scratchpad expands to a dated markdown path without calling mktemp' {
+    # Direct call: ZUnit's `run` would split this on the `;`.
+    local out=$(plugin_run $NO_EZA_DIR 'EDITOR=print; scratchpad')
+    assert "$out" matches '/scratch-[0-9]{2}-[0-9]{2}-[0-9]{2}-[0-9]+\.md$'
+}
+
+@test 'git-repo-website rewrites an SSH remote to an HTTPS URL' {
+    local repo=$STUB_DIR/repo
+    stub_bin $NO_EZA_DIR open
+    command mkdir -p -- $repo
+    # Ignore the user's git config; url.insteadOf rules would rewrite the remote.
+    export GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_SYSTEM=/dev/null
+    command git -C $repo init -q
+    command git -C $repo remote add origin 'git@github.com:vladdoster/zsh-aliases.plugin.zsh.git'
+
+    local out=$(plugin_run $NO_EZA_DIR "builtin cd ${(q)repo}; git-repo-website")
+    assert "$out" same_as 'open https://github.com/vladdoster/zsh-aliases.plugin.zsh'
+}
+
+@test 'git-repo-website leaves an HTTPS remote untouched' {
+    local repo=$STUB_DIR/repo-https
+    stub_bin $NO_EZA_DIR open
+    command mkdir -p -- $repo
+    # Ignore the user's git config; url.insteadOf rules would rewrite the remote.
+    export GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_SYSTEM=/dev/null
+    command git -C $repo init -q
+    command git -C $repo remote add origin 'https://github.com/vladdoster/zsh-aliases.plugin.zsh.git'
+
+    local out=$(plugin_run $NO_EZA_DIR "builtin cd ${(q)repo}; git-repo-website")
+    assert "$out" same_as 'open https://github.com/vladdoster/zsh-aliases.plugin.zsh'
+}
+
+@test 'every alias is defined after sourcing the plugin' {
+    local -a expected
+    expected=(
+        '+x' '..' '...' '....' '.....' '?' b rmr mk mkcd scratchpad rsync
+        git-repo-website l la ll lr cfg ezc zdd zrld get-path get-sys get-user
+    )
+    local name
+    for name in $expected; do
+        run plugin_run $NO_EZA_DIR "alias -- ${(q)name}"
+        assert $state equals 0
+        assert $output is_not_empty
+    done
+}
+
+@test 'global aliases are defined' {
+    # Names are quoted, otherwise the global aliases expand in the query itself.
+    run plugin_run $NO_EZA_DIR "alias -g -- 'B' 'C' 'D' 'G' 'L' 'P' 'g'"
+    assert $state equals 0
+    assert "${#lines}" equals 7
+}
+
+@test 'sourcing the plugin does not leak no_aliases into the caller' {
+    local out=$($ZSH_BIN -f -c "source ${(q)PLUGIN}; print -r -- \$options[aliases]")
+    assert "$out" same_as 'on'
+}
